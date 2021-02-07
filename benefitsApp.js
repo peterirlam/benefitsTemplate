@@ -47,3 +47,32 @@ function processTemplates(fileId, eventtype, templateFolder) {
       newFolder = childFolder;
     }
   }
+  let nameFile = DriveApp.getFileById(fileId);
+  let theName = nameFile.getName();
+  let htmlTemplate = "<!DOCTYPE html><html><head><base target='_blank'></head><body>";
+  if (eventtype == "copy") {
+    // Create a copy of the template
+    let timeZone = Session.getScriptTimeZone();
+    let formattedDate = Utilities.formatDate(new Date(), timeZone, "dd/MM/YYYY HH:mm:ss");
+    let newUrl = nameFile.makeCopy(theName + "_" + formattedDate, newFolder).getUrl();
+    let doc = DocumentApp.openByUrl(newUrl);
+    htmlTemplate += "<p><a id='open_doc' style='font-size:20px;font-family:Verdana;' href='" + newUrl + "'>" + theName + "_" + formattedDate + "</a></p><br/><br/>";
+  }
+  if (eventtype == "prevcopy") {
+    // Get list of previous templates
+    let fileIds = list_template_copies(newFolder.getId());
+
+    htmlTemplate += "<script>function callback(templatecopyid) {document.getElementById(templatecopyid).innerHTML ='';document.getElementById('msgdelete').style.display='none';};</script>";
+    htmlTemplate += "<script>function deletetemplate(deletefileId,templatecopyid,msgdeleteid) {document.getElementById(msgdeleteid).style.display='inline';google.script.run.withSuccessHandler(callback).deleteFile(deletefileId,templatecopyid);};</script>"
+
+    if (fileIds.length == 0) {
+      htmlTemplate += "<p style='font-family:arial, helvetica, sans-serif;margin:top:180px;text-align:center;font-size:18px; font-weight:normal;'>- No Templates Currently Saved -</p>";
+    } else {
+      for (var i = 0; i < fileIds.length; i++) {
+        htmlTemplate += "<p id='templatecopyid" + i + "'><a style='font-size:18px;font-family:Verdana;font-weight:normal;' href='" + DriveApp.getFileById(fileIds[i]).getUrl() + "'>" + DriveApp.getFileById(fileIds[i]).getName() + "</a>";
+        htmlTemplate += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+        htmlTemplate += "<button style='display:inline;'class='link' id='btnDelete' onclick='deletetemplate(\"" + DriveApp.getFileById(fileIds[i]).getId() + "\",\"templatecopyid" + i + "\",\"msgdeleteid" + i + "\");'>Delete</button>";
+        htmlTemplate += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id='msgdeleteid" + i + "' style='display:none;color:red;font-weight:bold;font-size:18px;font-family:vernanda;'>...Deleting</span></p>";
+      }
+    }
+  }
