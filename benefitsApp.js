@@ -76,3 +76,18 @@ function processTemplates(fileId, eventtype, templateFolder) {
       }
     }
   }
+  htmlTemplate += "</body></html>";
+  let html = HtmlService.createTemplate(htmlTemplate);
+  return html;
+}
+
+function list_template_copies(folderID) {
+  let folder = DriveApp.getFolderById(folderID); // Change the folder ID  here
+  let list = [];
+  let files = folder.getFiles();
+  while (files.hasNext()) {
+    file = files.next();
+    list.push(file.getId());
+  }
+  return list;
+}
